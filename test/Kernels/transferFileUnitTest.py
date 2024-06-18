@@ -33,4 +33,4 @@ class TestTransferFileKernel():
                                         username=self.username,
                                         password=self.password
                                         )
-        kernel.transfer()
+        kernel.execute()

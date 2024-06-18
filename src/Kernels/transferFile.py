@@ -1,30 +1,40 @@
-import string
+"""
+    Transfer File Operations Kernel
+    @MatheusLevy
+"""
 import paramiko
+from Kernels.kernel import Kernel
 
-class TransferFileKernel():
-    def __init__(self, ssh_port: int, host_file: string, 
-                 remote_machine: string, remote_file_path:string,  username: string, password: string) -> object:
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+class TransferFileKernel(Kernel):
+    def __init__(
+                self,
+                host_file, 
+                remote_machine,
+                remote_file_path,
+                username,
+                password,
+                ssh_port=22):
+        self._ssh = paramiko.SSHClient()
+        self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.ssh.connect(hostname=remote_machine,
+            self._ssh.connect(hostname=remote_machine,
                         port=ssh_port,
                         username=username,
                         password=password
                         )
-        except Exception as e:
+        except Exception:
             raise
         self.host_file = host_file
         self.remote_file_path = remote_file_path
-        self.sftp = self.ssh.open_sftp()
+        self._sftp = self._ssh.open_sftp()
 
-    def transfer(self):
+    def execute(self):
         try:            
-            self.sftp.put(self.host_file, self.remote_file_path)
-            self.sftp.close()
+            self._sftp.put(self.host_file, self.remote_file_path)
+            self._sftp.close()
         except:            
             raise
 
     def __del__(self):
-        self.sftp.close()
-        self.ssh.close()
+        self._sftp.close()
+        self._ssh.close()
