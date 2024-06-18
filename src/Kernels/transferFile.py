@@ -14,6 +14,7 @@ class TransferFileKernel(Kernel):
                 username,
                 password,
                 ssh_port=22):
+        super().__init__()
         self._ssh = paramiko.SSHClient()
         self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:

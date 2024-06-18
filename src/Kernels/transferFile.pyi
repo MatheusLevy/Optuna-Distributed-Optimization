@@ -1,4 +1,3 @@
-from typing import Optional
 from Kernels.kernel import Kernel
 
 class TransferFileKernel(Kernel):
