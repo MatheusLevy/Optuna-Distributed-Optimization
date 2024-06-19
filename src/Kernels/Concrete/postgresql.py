@@ -62,6 +62,7 @@ class PostgresSQLKernel(Kernel):
 
     def create_user(self, new_user):
         pass
+    
     def __del__(self):
         if hasattr(self, 'connection') and self.connection is not None:
             self.connection.close()
