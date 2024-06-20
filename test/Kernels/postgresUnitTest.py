@@ -52,7 +52,7 @@ class TestPostgresSQLKernel():
                   port=self.port
             )
 
-            result = kernel.createDatabase(database_name='teste_pytest', user='postgres')
+            result = kernel.createDatabase(database_name='teste_pytest', owner='postgres')
             assert result is not None            
             assert result.stdout == 'CREATE DATABASE\n'
             assert result.stderr == ''
@@ -68,7 +68,7 @@ class TestPostgresSQLKernel():
                   port=self.port
             )
             
-            kernel.createDatabase(database_name='teste_pytest', user='postgres')
+            kernel.createDatabase(database_name='teste_pytest', owner='postgres')
             result = kernel.deleteDatabase(database_name='teste_pytest')
             assert result is not None
             assert result.stdout == 'DROP DATABASE\n'
@@ -176,3 +176,19 @@ class TestPostgresSQLKernel():
             )
             result = kernel.listDatabases()    
             assert result is not None
+            del kernel
+
+      def test_databaseExists(self):
+           kernel =  PostgresKernel(
+                  database=self.database,
+                  user=self.user,
+                  password=self.password,
+                  host=self.host,
+                  port=self.port
+            )
+           kernel.createDatabase(owner=self.user, database_name="teste_database" )
+           result = kernel.databaseExists("teste_database")
+           assert result is not None
+           assert result is True
+           kernel.deleteDatabase("teste_database")
+           del kernel
