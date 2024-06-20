@@ -1,5 +1,4 @@
 import paramiko
-import paramiko.ssh_exception
 from Kernels.Strategy.packageManager import PackageManager
 from Kernels.Exceptions.packageManagerException import PackageManagerException
 
