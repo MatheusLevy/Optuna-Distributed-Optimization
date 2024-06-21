@@ -17,10 +17,17 @@ class TestCondaKernel():
         kernel = CondaKernel(username=self.username, password=self.userpassword, host="localhost", ssh_port=22)
         out = kernel.init_conda_env(env_name="optuna")
         assert kernel.channel is not None
-        print(out)
 
     def test_install(self):
         kernel = CondaKernel(username=self.username, password=self.userpassword, host="localhost", ssh_port=22)
         kernel.init_conda_env("optuna")
         kernel.install(package_name="numpy")
+        kernel.uninstall(package_name="numpy")
+        del kernel
+
+    def test_uninstall(self):
+        kernel = CondaKernel(username=self.username, password=self.userpassword, host="localhost", ssh_port=22)
+        kernel.init_conda_env("optuna")
+        kernel.install("numpy")
+        kernel.uninstall(package_name="numpy")
         del kernel

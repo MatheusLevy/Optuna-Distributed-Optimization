@@ -2,6 +2,7 @@ from Kernels.Strategy.packageManager import PackageManager
 from Kernels.Exceptions.packageManagerException import PackageManagerException
 import paramiko
 import time
+import re
 
 class CondaKernel(PackageManager):
     def __init__(self,
@@ -28,18 +29,38 @@ class CondaKernel(PackageManager):
                 details="Failed to connect",
                 error=e
             ) from e
-        
-    def init_conda_env(self, env_name):
-        self.env_name = env_name
+    
+    def wait_shell_be_ready(self, timeout=30):
+        seconds_elapsed = 0
+        while not self.channel.recv_ready():
+            if (seconds_elapsed >timeout):
+                raise PackageManagerException(
+                    mensage="Timout on invoked Shell",
+                    details=f"Shell was not ready, so timeout of: {timeout}"
+                )
+            time.sleep(1)
+            seconds_elapsed+=1
+
+    def init_shell(self, timeout=30):
         try:
             self.channel = self._ssh.invoke_shell()
-            while not self.channel.recv_ready():
-                time.sleep(1)
         except Exception as e:
             raise PackageManagerException(
                 mensage="Error while invoking shell",
                 error=e
             )
+        try: 
+            self.wait_shell_be_ready(timeout)
+        except PackageManagerException as e:
+            raise e
+
+    def init_conda_env(self, env_name, timeout=30):
+        self.env_name = env_name
+        try:
+            self.init_shell()
+        except PackageManagerException as e:
+            raise e
+        
         cmd = f"conda activate {env_name}\n"
         try:
             self.channel.send(cmd)
@@ -49,31 +70,87 @@ class CondaKernel(PackageManager):
                 details=f"Failed executing command: {cmd}",
                 error=e
             ) from e
-        output= None
-        if self.channel.recv_ready():
-            output = self.channel.recv(1024)
+        
+        try:
+            self.wait_shell_be_ready(timeout)
+        except PackageManagerException as e:
+            raise e
+        
+        output = self.channel.recv(2048)   
         return output
     
+    def patterns_in_string(self, string, patterns):
+        for pattern in patterns:
+            if re.match(pattern, string):
+                return True
+        return False
+    
+    def strings_in_string(self, string, strings):
+            for text in  strings:
+                if text in string:
+                    return True
+            return False
+            
+    def wait_until_command_finished(self, regex_patterns=[''], text_callback=['']):
+        while True:
+            try:
+                output = self.channel.recv(1024).decode()
+            except Exception as e:
+                raise PackageManagerException(
+                    mensage="Error monitoring the command output",
+                    details="Falied to fetch the output of the command",
+                    error=e
+                )
+            if self.patterns_in_string(output, regex_patterns) or self.strings_in_string(output, text_callback):
+                time.sleep(0.5)
+                break      
+               
     def install(self, package_name, version=""):
         cmd = f"conda install -y -q {package_name}{version}\n"
         try:
             self.channel.send(cmd)
-            time.sleep(1)  # Aguarda um momento para que o comando seja processado inicialmente
+            time.sleep(0.5)
+        except Exception as e: 
+            raise PackageManagerException(
+                mensage="Error during package install",
+                details=f"Failed to run the command: {cmd}",
+                error=e
+            )
+        try:
+            self.wait_until_command_finished(
+                regex_patterns=[
+                    r'done\r\n\((.*?)\) (.*?)@.*?\$', 
+                    r'\([^\)]+\) [^\s@]+@[^\s:]+:~\$ '
+                ],
+                text_callback=[
+                    '# All requested packages already installed.'
+                ]
+            )
+        except PackageManagerException as e:
+            raise e
 
-            while True:
-                output = self.channel.recv(1024).decode()
-                print(output)
-                print('Executing transaction: ...working...' in output or '# All requested packages already installed.' in output)
-                if 'Executing transaction: ...working...' in output or '# All requested packages already installed.' in output:
-                    time.sleep(1)
-                    break
-        except Exception as e:
-            raise Exception(f"Error executing installation command: {e}")
-
-    
-
-    def uninstall(self, host, package_name):
-        return super().uninstall(host, package_name)
+    def uninstall(self, package_name):
+        cmd = f"conda remove -y -q {package_name}\n"
+        try:
+            self.channel.send(cmd)
+            time.sleep(0.5)
+        except Exception as e: 
+            raise PackageManagerException(
+                mensage="Error during package remove",
+                details=f"Failed to run the command: {cmd}",
+                error=e
+            )
+        try:
+            self.wait_until_command_finished(
+                regex_patterns= [
+                    r'\([^\)]+\) [^\s@]+@[^\s:]+:~\$ '
+                ],
+                text_callback=[
+                    'PackagesNotFoundError: The following packages are missing from the target environment:'
+                ]
+            )
+        except PackageManagerException as e:
+            raise e
     
     def __del__(self):
         self._ssh.close()
