@@ -14,5 +14,9 @@ class PackageManager(ABC):
         pass
 
     @abstractmethod
+    def install_from_file(self, file_path):
+        pass
+    
+    @abstractmethod
     def __del__(self):
         pass

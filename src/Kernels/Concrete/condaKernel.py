@@ -129,6 +129,9 @@ class CondaKernel(PackageManager):
         except PackageManagerException as e:
             raise e
 
+    def install_from_file(self, file_path):
+        return super().install_from_file(file_path)
+    
     def uninstall(self, package_name):
         cmd = f"conda remove -y -q {package_name}\n"
         try:
