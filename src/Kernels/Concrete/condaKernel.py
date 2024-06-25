@@ -106,7 +106,7 @@ class CondaKernel(PackageManager):
                 break      
                
     def install(self, package_name, version=""):
-        cmd = f"conda install -y -q {package_name}{version}\n"
+        cmd = f"conda install -y -q {package_name}{version}" + "; echo '(FINISHED CODE)'\n"
         try:
             self.channel.send(cmd)
             time.sleep(0.5)
@@ -118,22 +118,31 @@ class CondaKernel(PackageManager):
             )
         try:
             self.wait_until_command_finished(
-                regex_patterns=[
-                    r'done\r\n\((.*?)\) (.*?)@.*?\$', 
-                    r'\([^\)]+\) [^\s@]+@[^\s:]+:~\$ '
-                ],
-                text_callback=[
-                    '# All requested packages already installed.'
-                ]
+                text_callback=["(FINISHED CODE)\r\n"]
             )
         except PackageManagerException as e:
             raise e
 
     def install_from_file(self, file_path):
-        return super().install_from_file(file_path)
-    
+        cmd = f"conda env create -f {file_path}" + "; echo '(FINISHED CODE)'\n"
+        try:
+            self.channel.send(cmd)
+            time.sleep(0.5)
+        except Exception as e:
+            raise PackageManagerException(
+                mensage="Error during env install",
+                details="Failed to install from file",
+                error=e
+            ) from e
+        try:
+            self.wait_until_command_finished(
+                text_callback=["FINISHED CODE"]
+            )
+        except PackageManagerException as e:
+            raise e
+        
     def uninstall(self, package_name):
-        cmd = f"conda remove -y -q {package_name}\n"
+        cmd = f"conda remove -y -q {package_name}" +  "; echo '(FINISHED CODE)'\n"
         try:
             self.channel.send(cmd)
             time.sleep(0.5)
@@ -145,12 +154,7 @@ class CondaKernel(PackageManager):
             )
         try:
             self.wait_until_command_finished(
-                regex_patterns= [
-                    r'\([^\)]+\) [^\s@]+@[^\s:]+:~\$ '
-                ],
-                text_callback=[
-                    'PackagesNotFoundError: The following packages are missing from the target environment:'
-                ]
+                text_callback=["FINISHED CODE"]
             )
         except PackageManagerException as e:
             raise e
