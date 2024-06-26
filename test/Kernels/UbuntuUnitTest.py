@@ -44,3 +44,28 @@ class TestUbuntuKernel():
         info = kernel.get_GPU_info()
         assert info is not None
         assert info != ""
+
+    def test_get_process_info(self):
+        kernel = UbuntoMachineKernel(
+            username=self.username,
+            password=self.password,
+        )  
+        info = kernel.get_process_info(pid=1867)
+        assert info is not None
+        assert info != ""
+
+    # def test_kill_process_info(self):
+    #     kernel = UbuntoMachineKernel(
+    #         username=self.username,
+    #         password=self.password,
+    #     )  
+    #     info = kernel.kill_process_info(pid=18101)
+    #     assert info is not None
+    #     assert info == ''
+
+    def test_gpu_is_used(self):
+        kernel = UbuntoMachineKernel(
+            username=self.username,
+            password=self.password,
+        )  
+        kernel.gpu_is_used()

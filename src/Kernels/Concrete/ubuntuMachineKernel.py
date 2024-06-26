@@ -247,13 +247,53 @@ class UbuntoMachineKernel(MachineKernel):
 
 
     def get_process_info(self, pid):
-        return super().get_process_info(pid)
-    
-    def get_process_on_gpu(self):
-        return super().get_process_on_gpu()
+        def build_process_info(stdout, stderr):
+            out= stdout.read().decode()
+            error = stderr.read().decode()
+            process_info = out.splitlines()[1]
+            process_infos = process_info.split()
+            print(process_infos)
+            return {
+                "pid": process_infos[0],
+                "ppid": process_infos[1],
+                "cmd": process_infos[2],
+                "cpu_usage": process_infos[3],
+                "memory_usage": process_infos[4],
+                "etime": process_infos[5],
+                "error": error
+            }
+        
+        cmd = f"ps -p {pid} -o pid,ppid,cmd,%cpu,%mem,etime"
+        try:
+            _, stdout, stderr = self.ssh.exec_command(cmd)
+        except Exception as e:
+            raise MachineKernelException(
+                mensage="Erro executing command",
+                details=f"Failed to run command: {cmd}",
+                error=e
+            ) from e
+        return build_process_info(stdout, stderr)
     
     def kill_process_info(self, pid):
-        return super().kill_process_info(pid)
+        cmd = f"kill {pid}; echo 'KILL'"
+        try:
+            _, _, stderr = self.ssh.exec_command(cmd)
+        except Exception as e:
+            raise MachineKernelException(
+                mensage="Erro executing command",
+                details=f"Failed to run command: {cmd}",
+                error=e
+            ) from e
+        return stderr.read().decode()
     
     def gpu_is_used(self):
-        return super().gpu_is_used()
+        def extract_mb_usage(string):
+            return int(string.replace('MiB',''))
+        
+        gpus = self.get_GPU_info()
+        for gpu in gpus:
+            for process in gpu['process']:
+                gpu['in_use'] = extract_mb_usage(process['memmory_usage']) > 500
+                if (gpu['in_use']):
+                    break
+        return gpu

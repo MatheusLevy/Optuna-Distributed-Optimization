@@ -31,9 +31,5 @@ class MachineKernel(ABC):
         pass
 
     @abstractmethod
-    def get_process_on_gpu(self):
-        pass
-
-    @abstractmethod
     def gpu_is_used(self):
         pass
