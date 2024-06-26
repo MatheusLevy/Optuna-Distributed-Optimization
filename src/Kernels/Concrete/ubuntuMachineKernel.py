@@ -27,138 +27,210 @@ class UbuntoMachineKernel(MachineKernel):
                 details=f"Failed to connect to {host}:{ssh_port}",
                 error=e
             ) from e
-        
+    
     def get_partition_info(self, partition="/"):
+        def _build_partition_dict(stdout, stderr):
+            out = stdout.read().decode()
+            error = stderr.read().decode()
+            parts = out.split()
+            return {
+                "device": parts[0],
+                "total_size": parts[1],
+                "used_space": parts[2],
+                "free_space": parts[3],
+                "porcent_used": parts[4],
+                "mounted_at":parts[5],
+                "errors": error
+            }
+        
         cmd = f'df -h | awk \'$6 == "{partition}"\''
         try:
-            stdin, stdout, stderr = self.ssh.exec_command(cmd)
+            _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
                 mensage="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
-        out = stdout.read().decode()
-        error = stderr.read().decode()
-        parts = out.split()
-        partition_info = {
-            "device": parts[0],
-            "total_size": parts[1],
-            "used_space": parts[2],
-            "free_space": parts[3],
-            "porcent_used": parts[4],
-            "mounted_at":parts[5],
-            "errors": error
-        }
-        return partition_info
-    
+        print(stdout)
+        return _build_partition_dict(stdout, stderr)
+
     def get_memmory_info(self):
+        def _build_memmory_inf(stdout, stderr):
+            def _split_out_componets(out):
+                out_lines = out.splitlines()
+                memory_info_line = out_lines[1]
+                swap_info_line = out_lines[0]
+                memory_infos = memory_info_line.split()
+                swap_infos = swap_info_line.split()
+                return memory_infos, swap_infos
+            
+            out = stdout.read().decode()
+            error = stderr.read().decode()
+            memory_infos, swap_infos = _split_out_componets(out)
+
+            return {
+                "total_memory": memory_infos[1],
+                "used_memory": memory_infos[2],
+                "free_memory": memory_infos[3],
+                "shared_memory": memory_infos[4],
+                "buffer_cache": memory_infos[5],
+                "available": memory_infos[6],
+                "total_swap": swap_infos[1],
+                "used_swap": swap_infos[2],
+                "free_swap": swap_infos[3],
+                "errors":error
+            }
+        
         cmd = 'free -h'
         try:
-            stdin, stdout, stderr = self.ssh.exec_command(cmd)
+            _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
                 mensage="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
-        out = stdout.read().decode()
-        error = stderr.read().decode()
-        parts_memory = out.splitlines()[1].split()
-        parts_swap = out.splitlines()[2].split()
-        memory_info = {
-            "total_memory": parts_memory[1],
-            "used_memory": parts_memory[2],
-            "free_memory": parts_memory[3],
-            "shared_memory": parts_memory[4],
-            "buffer_cache": parts_memory[5],
-            "available": parts_memory[6],
-            "total_swap": parts_swap[1],
-            "used_swap": parts_swap[2],
-            "free_swap": parts_swap[3],
-            "errors":error
-        }
-        return memory_info
-        
+        return _build_memmory_inf(stdout, stderr)
+    
+
     def get_CPU_info(self):
+        def build_cpu_info(stdout, stderr):
+            out = stdout.read().decode()
+            error = stderr.read().decode()
+            out_lines = out.splitlines()
+
+            cpu_cores=  out_lines[7].split(sep=":")[1]
+            thred_per_core = out_lines[8].split(sep=":")[1]
+            cpu_threds = str(int(cpu_cores) * int(thred_per_core))
+            
+            return {
+                "cpu_cores": cpu_cores,
+                "cpu_threads": cpu_threds,
+                "erorrs": error
+            }
+        
+        def build_process_info(stdout, stderr):
+            out = stdout.read().decode()
+            error = stderr.read().decode()
+            out_lines = out.splitlines()[7:]
+            processes_in_cpu = []
+            for process_line in out_lines:
+                process_infos = process_line.split()
+                processes_in_cpu.append({
+                "pid": process_infos[0],
+                "user": process_infos[1],
+                "cpu_use": process_infos[8],
+                "memmory_use": process_infos[9],
+                "time": process_infos[10],
+                "command": process_infos[11],
+                "error": error
+            })
+            return processes_in_cpu
+
+        def exec_commands(self, commands):
+            responses = []
+            for command in commands:
+                _, stdout, stderr = self.ssh.exec_command(command)
+                responses.append({
+                        "command": command,
+                        "stdout": stdout,
+                        "stderr": stderr
+                    })
+            return responses
+       
         cmd1 = 'lscpu'
         cmd2 = 'top -bn1 | head -n10'
         try:
-            stdin_lscpu, stdout_lscpu, stderr_lscpu = self.ssh.exec_command(cmd1)
-            stdin_top, stdout_top, stderr_top = self.ssh.exec_command(cmd2)
+            responses = exec_commands(self, [cmd1, cmd2])
         except Exception as e:
             raise MachineKernelException(
                 mensage="Erro executing command",
                 details=f"Failed to run commands: {cmd1} or {cmd2}",
                 error=e
             ) from e
-        out_lscpu = stdout_lscpu.read().decode()
-        error_lscpu = stderr_lscpu.read().decode()
-        out_top = stdout_top.read().decode()
-        error_top = stdout_top.read().decode()
-
-        lines_lscpu = out_lscpu.splitlines()
-        cpu_cores = lines_lscpu[7].split(sep=":")[1]
-        thred_per_core = lines_lscpu[8].split(sep=":")[1]
-        cpu_threds = str(int(cpu_cores) * int(thred_per_core))
-        lines_top = out_top.splitlines()[7:]
-        processes_using_cpu  = []
-        for line in lines_top:
-            line_split = line.split()
-            pid = line_split[0]
-            user = line_split[1]
-            cpu_use = line_split[8]
-            mem_use = line_split[9]
-            time = line_split[10]
-            command= line_split[11]
-            processes_using_cpu.append({
-                "pid": pid,
-                "user": user,
-                "cpu_use": cpu_use,
-                "memmory_use": mem_use,
-                "time": time,
-                "command": command
-            })
-        cpu_info = {
-            "cpu_cores": cpu_cores,
-            "cpu_threads": cpu_threds,
-            "processes": processes_using_cpu,
-            "erorrs": [stderr_top, stderr_lscpu]
-        }
+        
+        cpu_info = dict()
+        process_info = []
+        for response in responses:
+            command = response['command']
+            if  command == cmd1:
+                cpu_info = build_cpu_info(response['stdout'], response['stderr'])
+            if command == cmd2:
+                process_info = build_process_info(response['stdout'], response["stderr"])
+        
+        cpu_info['processes'] = process_info
         return cpu_info
     
     def get_GPU_info(self):
+        def build_vgas_infos(stdout, stderr):
+            def get_gpus_infos(gpus):
+                def extract_gpu_model(string):
+                    cut_position = string.find("(")
+                    if cut_position != -1:
+                        string = string[:cut_position].strip()
+                    return string
+                def extract_id(gpu_infos):
+                    return  gpu_infos[0].split()[1]
+
+                infos = []
+                for gpu in gpus:
+                    gpu_infos = gpu.split(sep=":")
+                    infos.append({
+                        "id":extract_id(gpu_infos),
+                        "model": extract_gpu_model(gpu_infos[1]),
+                    })
+                return infos
+
+            out = stdout.read().decode()
+            error = stderr.read().decode()
+            gpus = out.splitlines()
+            return get_gpus_infos(gpus)
+        
+        def extract_extra_infos(out, error):
+            gpu_info_line = out.splitlines()[9]
+            gpu_infos = gpu_info_line.split()
+            return {
+                "usage": gpu_infos[1],
+                "temp": gpu_infos[2],
+                "current_watts": gpu_infos[4],
+                "max_watts": gpu_infos[6],
+                "used_vram": gpu_infos[8],
+                "max_vram": gpu_infos[10],
+                "gpu_usage": gpu_infos[12],
+                "error": error
+            }
+        def extract_process_infos(out, error):
+
+            processes_lines = out.splitlines()[18:]
+            processes_lines = processes_lines[:len(processes_lines)-1] 
+            processes = []
+            for process_line in processes_lines:
+                process_infos = process_line.split()
+                processes.append({
+                    'gpu_id': process_infos[1],
+                    "pid": process_infos[4],
+                    "process_name": process_infos[6],
+                    "memmory_usage": process_infos[7],
+                    "error": error
+                })
+            return processes
+
+
         cmd1 = "nvidia-smi -L"
         try:
-            stdin_vga, stdout_vga, stderr_vga = self.ssh.exec_command(cmd1)
+            _, stdout, stderr = self.ssh.exec_command(cmd1)
         except Exception as e:
             raise MachineKernelException(
                 mensage="Erro executing command",
                 details=f"Failed to run command: {cmd1}",
                 error=e
             ) from e
-        out = stdout_vga.read().decode()
-        error = stderr_vga.read().decode()
-        vgas = out.splitlines()
-        gpu_info = [
-        ]
-
-        for vga in vgas:
-
-            vga_infos = dict()
-            splited_infos = vga.split(sep=":")
-            gpu_id = splited_infos[0].split()[1]
-            model = splited_infos[1]
-            cut_position = model.find("(")
-            if cut_position != -1:
-                model = model[:cut_position].strip()
-            
-            vga_infos["gpu_id"] = gpu_id
-            vga_infos["model"] = model
-            cmd_usage = f"nvidia-smi -i {gpu_id}"
-
+        gpus_info = build_vgas_infos(stdout, stderr)
+        for gpu in gpus_info:
+            cmd_usage = f"nvidia-smi -i {gpu['id']}"
             try:
-                stdin, stdout, stderr = self.ssh.exec_command(cmd_usage)
+                _, stdout, stderr = self.ssh.exec_command(cmd_usage)
             except Exception as e:
                 raise MachineKernelException(
                     mensage="Erro retrieving gpu info",
@@ -167,41 +239,11 @@ class UbuntoMachineKernel(MachineKernel):
                 ) from e
             out= stdout.read().decode()
             error = stderr.read().decode()
-
-            nvidia_gpu_info = out.splitlines()[9]
-            usage= nvidia_gpu_info.split()[1]
-            temp = nvidia_gpu_info.split()[2]
-            current_watts = nvidia_gpu_info.split()[4]
-            max_watts = nvidia_gpu_info.split()[6]
-            used_vram= nvidia_gpu_info.split()[8]
-            max_vram = nvidia_gpu_info.split()[10]
-            gpu_usage = nvidia_gpu_info.split()[12]
-
-            vga_infos["usage"] = usage
-            vga_infos["temp"] = temp
-            vga_infos["current_watts"] = current_watts
-            vga_infos["max_watts"] = max_watts
-            vga_infos["used_vram"] = used_vram
-            vga_infos["max_vram"] = max_vram
-            vga_infos["gpu_usage"] = gpu_usage
-            vga_infos["process"] = []
-            nvidia_gpu_process_infos = out.splitlines()[18:]
-            nvidia_gpu_process_infos = nvidia_gpu_process_infos[:len(nvidia_gpu_process_infos)-1]
-            for line in nvidia_gpu_process_infos:
-                splited = line.split()
-                gpu_id_on_process = splited[1]
-                pid = splited[4]
-                process_name =splited[6]
-                gpu_memory_usage =splited[7]
-                process_info = {
-                    "gpu_id": gpu_id_on_process,
-                    "pid": pid,
-                    "memmory_usage": gpu_memory_usage,
-                    "process_name": process_name
-                }
-                vga_infos["process"].append(process_info)
-        gpu_info.append(vga_infos)
-        return gpu_info
+            extra_infos = extract_extra_infos(out, error)
+            processes_infos = extract_process_infos(out, error)
+            gpu['extra'] = extra_infos
+            gpu['process'] = processes_infos
+        return gpus_info
 
 
     def get_process_info(self, pid):
