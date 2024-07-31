@@ -23,7 +23,7 @@ class UbuntoMachineKernel(MachineKernel):
             )
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro connecting to machine",
+                message="Erro connecting to machine",
                 details=f"Failed to connect to {host}:{ssh_port}",
                 error=e
             ) from e
@@ -48,7 +48,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
@@ -87,7 +87,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
@@ -145,7 +145,7 @@ class UbuntoMachineKernel(MachineKernel):
             responses = exec_commands(self, [cmd1, cmd2])
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run commands: {cmd1} or {cmd2}",
                 error=e
             ) from e
@@ -222,7 +222,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, stdout, stderr = self.ssh.exec_command(cmd1)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd1}",
                 error=e
             ) from e
@@ -233,7 +233,7 @@ class UbuntoMachineKernel(MachineKernel):
                 _, stdout, stderr = self.ssh.exec_command(cmd_usage)
             except Exception as e:
                 raise MachineKernelException(
-                    mensage="Erro retrieving gpu info",
+                    message="Erro retrieving gpu info",
                     details=f"Failed to run {cmd_usage}",
                     error=e
                 ) from e
@@ -268,7 +268,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
@@ -280,7 +280,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, _, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e
@@ -304,7 +304,7 @@ class UbuntoMachineKernel(MachineKernel):
             _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
             raise MachineKernelException(
-                mensage="Erro executing command",
+                message="Erro executing command",
                 details=f"Failed to run command: {cmd}",
                 error=e
             ) from e

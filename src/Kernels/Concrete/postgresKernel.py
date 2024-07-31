@@ -28,7 +28,7 @@ class PostgresKernel(DatabaseKernel):
             self.cur = self.connection.cursor()
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error while initing PostgresKernel Object",
+                message="Error while initing PostgresKernel Object",
                 details="Failed to create connection with database",
                 error=e) from e
 
@@ -39,7 +39,7 @@ class PostgresKernel(DatabaseKernel):
                 return self.cur.fetchall()
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error wihile executing query",
+                message="Error wihile executing query",
                 error=e
             ) from e
         
@@ -49,7 +49,7 @@ class PostgresKernel(DatabaseKernel):
             return subprocess.run(cmd, shell=True, text=True, capture_output=True)
         except subprocess.SubprocessError as e:
             raise DatabaseException(
-                mensage="Error while creating database via subprocess",
+                message="Error while creating database via subprocess",
                 details=f"Failed to execute comand: {cmd}",
                 error=e
             ) from e
@@ -61,7 +61,7 @@ class PostgresKernel(DatabaseKernel):
             return subprocess.run(cmd, shell=True, text=True, capture_output=True)
         except subprocess.SubprocessError as e:
             raise DatabaseException(
-                mensage="Error while deleting database via subprocess",
+                message="Error while deleting database via subprocess",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             )
@@ -72,7 +72,7 @@ class PostgresKernel(DatabaseKernel):
             return subprocess.run(cmd, shell=True, text=True, capture_output=True)
         except subprocess.SubprocessError as e:
             raise DatabaseException(
-                mensage="Error while creating user via subprocess",
+                message="Error while creating user via subprocess",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             ) from e
@@ -83,7 +83,7 @@ class PostgresKernel(DatabaseKernel):
             return subprocess.run(cmd, shell=True, text=True, capture_output=True)
         except subprocess.SubprocessError as e:
             raise DatabaseException(
-                mensage="Error while deleting user via subprocess",
+                message="Error while deleting user via subprocess",
                 details=f"Falied to execute command: {cmd}",
                 error=e
             ) from e
@@ -99,7 +99,7 @@ class PostgresKernel(DatabaseKernel):
             return subprocess.run(cmd, shell=True, text=True, capture_output=True)
         except subprocess.SubprocessError as e:
             raise DatabaseException(
-                mensage="Error while creating table via subprocess",
+                message="Error while creating table via subprocess",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             ) from e
@@ -110,7 +110,7 @@ class PostgresKernel(DatabaseKernel):
             self.cur.execute(query)
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Erro while deleting table with cursor to database",
+                message="Erro while deleting table with cursor to database",
                 details=f"Failed to execute query: {query}",
                 error=e
             ) from e
@@ -118,7 +118,7 @@ class PostgresKernel(DatabaseKernel):
             self.connection.commit()
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Erro while commiting changes to database",
+                message="Erro while commiting changes to database",
                 error=e
             ) from e  
         
@@ -135,7 +135,7 @@ class PostgresKernel(DatabaseKernel):
             self.cur.execute(query, (table_name,))
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error while verifying table with cursor to database",
+                message="Error while verifying table with cursor to database",
                 details=f"Failed to excute query: {query}",
                 error=e
             ) from e
@@ -143,7 +143,7 @@ class PostgresKernel(DatabaseKernel):
             exists = self.cur.fetchone()[0]
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error while fetching one from cursor",
+                message="Error while fetching one from cursor",
                 details="Error on self.cur.fetchone()[0]",
                 error=e
             ) from e
@@ -161,7 +161,7 @@ class PostgresKernel(DatabaseKernel):
             self.cur.execute(query, (database_name,))
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error while verifying database with cursor to database",
+                message="Error while verifying database with cursor to database",
                 details=f"Failed to exectue query: {query}",
                 error=e
             ) from e
@@ -169,7 +169,7 @@ class PostgresKernel(DatabaseKernel):
             exists = self.cur.fetchone()[0]
         except psycopg2.Error as e:
             raise DatabaseException(
-                mensage="Error while fething on from cursor",
+                message="Error while fething on from cursor",
                 details="Error on self.cur.fetchone()[0]",
                 error=e
             )    

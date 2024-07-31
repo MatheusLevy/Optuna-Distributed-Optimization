@@ -28,7 +28,7 @@ class PipKernel(PackageManager):
             )
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error connecting via ssh to machine",
+                message="Error connecting via ssh to machine",
                 details="Failed to connect",
                 error=e
             ) from e
@@ -48,7 +48,7 @@ class PipKernel(PackageManager):
             stdin.flush()
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error while instaling pip",
+                message="Error while instaling pip",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             ) from e
@@ -72,7 +72,7 @@ class PipKernel(PackageManager):
                 output = self.channel.recv(1024).decode()
             except Exception as e:
                 raise PackageManagerException(
-                    mensage="Error monitoring the command output",
+                    message="Error monitoring the command output",
                     details="Falied to fetch the output of the command",
                     error=e
                 )
@@ -117,7 +117,7 @@ class PipKernel(PackageManager):
                 stdin.flush()
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error while instaling pip",
+                message="Error while instaling pip",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             ) from e
@@ -145,7 +145,7 @@ class PipKernel(PackageManager):
                 stdin.flush()
         except Exception as e:
             raise PackageManager(
-                mensage="Erro while instaling requirements",
+                message="Erro while instaling requirements",
                 details=f"Failed to execute: {cmd}",
                 error=e
             ) from e
@@ -174,7 +174,7 @@ class PipKernel(PackageManager):
                 stdin.flush()
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error while instaling pip",
+                message="Error while instaling pip",
                 details=f"Failed to execute command: {cmd}",
                 error=e
             ) from e

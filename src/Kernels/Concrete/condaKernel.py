@@ -25,7 +25,7 @@ class CondaKernel(PackageManager):
             )
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error connecting via ssh to machine",
+                message="Error connecting via ssh to machine",
                 details="Failed to connect",
                 error=e
             ) from e
@@ -35,7 +35,7 @@ class CondaKernel(PackageManager):
         while not self.channel.recv_ready():
             if (seconds_elapsed >timeout):
                 raise PackageManagerException(
-                    mensage="Timout on invoked Shell",
+                    message="Timout on invoked Shell",
                     details=f"Shell was not ready, so timeout of: {timeout}"
                 )
             time.sleep(1)
@@ -46,7 +46,7 @@ class CondaKernel(PackageManager):
             self.channel = self._ssh.invoke_shell()
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error while invoking shell",
+                message="Error while invoking shell",
                 error=e
             )
         try: 
@@ -66,7 +66,7 @@ class CondaKernel(PackageManager):
             self.channel.send(cmd)
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error while send command",
+                message="Error while send command",
                 details=f"Failed executing command: {cmd}",
                 error=e
             ) from e
@@ -97,7 +97,7 @@ class CondaKernel(PackageManager):
                 output = self.channel.recv(1024).decode()
             except Exception as e:
                 raise PackageManagerException(
-                    mensage="Error monitoring the command output",
+                    message="Error monitoring the command output",
                     details="Falied to fetch the output of the command",
                     error=e
                 )
@@ -112,7 +112,7 @@ class CondaKernel(PackageManager):
             time.sleep(0.5)
         except Exception as e: 
             raise PackageManagerException(
-                mensage="Error during package install",
+                message="Error during package install",
                 details=f"Failed to run the command: {cmd}",
                 error=e
             )
@@ -130,7 +130,7 @@ class CondaKernel(PackageManager):
             time.sleep(0.5)
         except Exception as e:
             raise PackageManagerException(
-                mensage="Error during env install",
+                message="Error during env install",
                 details="Failed to install from file",
                 error=e
             ) from e
@@ -148,7 +148,7 @@ class CondaKernel(PackageManager):
             time.sleep(0.5)
         except Exception as e: 
             raise PackageManagerException(
-                mensage="Error during package remove",
+                message="Error during package remove",
                 details=f"Failed to run the command: {cmd}",
                 error=e
             )
