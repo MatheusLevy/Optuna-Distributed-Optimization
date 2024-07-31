@@ -13,7 +13,7 @@ class UbuntoMachineKernel(MachineKernel):
         self.password = password
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
+        self.host = host
         try:
             self.ssh.connect(
                 hostname=host,
@@ -43,7 +43,7 @@ class UbuntoMachineKernel(MachineKernel):
                 "errors": error
             }
         
-        cmd = f'df -h | awk \'$6 == "{partition}"\''
+        cmd = f'df -B1 | awk \'$6 == "{partition}"\''
         try:
             _, stdout, stderr = self.ssh.exec_command(cmd)
         except Exception as e:
@@ -297,3 +297,15 @@ class UbuntoMachineKernel(MachineKernel):
                 if (gpu['in_use']):
                     break
         return gpu
+    
+    def get_folder_size(self, path_to_folder):
+        cmd = f"du -sb {path_to_folder}"
+        try:
+            _, stdout, stderr = self.ssh.exec_command(cmd)
+        except Exception as e:
+            raise MachineKernelException(
+                mensage="Erro executing command",
+                details=f"Failed to run command: {cmd}",
+                error=e
+            ) from e
+        return stdout.read().decode().split('\t')[0]

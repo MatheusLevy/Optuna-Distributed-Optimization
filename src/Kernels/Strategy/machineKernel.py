@@ -33,3 +33,7 @@ class MachineKernel(ABC):
     @abstractmethod
     def gpu_is_used(self):
         pass
+    
+    @abstractmethod
+    def get_folder_size(self, path_to_folder):
+        pass
