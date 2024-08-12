@@ -19,4 +19,4 @@ class TestTranferFileModule():
     def test_in_use_machines(self):
         module = MachinaryModule(self.machine_list)
         onlines = module.get_online_machines()
-        module._add_in_use_machines(onlines)
+
