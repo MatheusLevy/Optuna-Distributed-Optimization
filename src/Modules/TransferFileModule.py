@@ -43,3 +43,8 @@ class TransferFileModule():
             return False
         print("Transferencia finalizada")
         return True
+    
+    def __del__(self):
+        del self.TransferFilerKernel
+        del self.machineKernelDestiny
+        del self.machineKernelSource

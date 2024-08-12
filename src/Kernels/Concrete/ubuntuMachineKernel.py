@@ -294,9 +294,7 @@ class UbuntoMachineKernel(MachineKernel):
         for gpu in gpus:
             for process in gpu['process']:
                 gpu['in_use'] = extract_mb_usage(process['memmory_usage']) > 500
-                if (gpu['in_use']):
-                    break
-        return gpu
+        return gpus
     
     def get_folder_size(self, path_to_folder):
         cmd = f"du -sb {path_to_folder}"
