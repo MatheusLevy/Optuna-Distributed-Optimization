@@ -1,100 +1,59 @@
-"""
-    Transfer File Concrete Operations Kernel
-    @MatheusLevy
-"""
 import paramiko
+from scp import SCPClient
+from Models.Dataset import Dataset
+from Models.Machine import Machine
 import os
+import sys
+import uuid
 
-from Kernels.Strategy.tranferFileKernel import TransferFileKernel
+class SSHTransferFileKernel:
+    def __init__(self):
+        self.ssh = None
 
-class SSHTranferFileKernel(TransferFileKernel):
-    def __init__(self,
-                remote_machine,
-                remote_file_path,
-                username,
-                password,
-                host_file_path,
-                ssh_port=22):
-        super().__init__()
-        self._ssh= paramiko.SSHClient()
-        self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    @staticmethod
+    def progress4(filename, size, sent, peername):
+        sys.stdout.write("(%s:%s) %s's progress: %.2f%%   \r" % (peername[0], peername[1], filename, float(sent)/float(size)*100) )
+        sys.stdout.flush()  # Certifique-se de que o progresso é atualizado corretamente
+
+    @staticmethod
+    def make_folder_if_not_exists(folder):
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+    def transferFile(self, dataset: Dataset = None, destiny_machine: Machine = None):
         try:
-            self._ssh.connect(
-                hostname=remote_machine,
-                port=ssh_port,
-                username=username,
-                password=password)
-        except Exception as e:
-            raise RuntimeError(f"Failed to connect or open SFTP: {e}")
-        self.host_file= host_file_path
-        self.remote_file= remote_file_path
-        self._sftp = self._ssh.open_sftp()
+            # Conectar à máquina de origem
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.ssh.connect(dataset.get_host(), username=dataset.get_username(), password=dataset.get_password())
 
-    def upload_folder(self, local_folder, remote_folder, verbose=False):
-        try:
-            # Cria o diretório remoto se não existir
-            try:
-                self._sftp.chdir(remote_folder)
-            except IOError:
-                parent_folder = os.path.dirname(remote_folder)
-                if parent_folder:
-                    # Recorre para criar diretórios pais
-                    self._sftp.mkdir(remote_folder)
-                    self._sftp.chdir(remote_folder)
-                    self.upload_folder(local_folder, remote_folder, verbose)
+            print("Movendo dataset para o servidor")
+            uuid_dir = str(uuid.uuid4())  # Gerar UUID
+            temp_dir = f"/backup/temp/{uuid_dir}"
+            self.make_folder_if_not_exists(temp_dir)
+
+            # Transferir o dataset para o servidor
+            with SCPClient(self.ssh.get_transport(), progress4=self.progress4) as scp:
+                scp.get(dataset.dataset_path, temp_dir, recursive=True)
+
+            self.ssh.close()
             
-            # Percorre todos os arquivos e diretórios na pasta local
-            for item in os.listdir(local_folder):
-                local_path = os.path.join(local_folder, item)
-                remote_path = os.path.join(remote_folder, item)
+            # Conectar à máquina de destino
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.ssh.connect(destiny_machine.get_host(), username=destiny_machine.get_username(), password=destiny_machine.get_password())
+            
+            print("Movendo do servidor para a máquina de destino")
+            dataset_name = os.path.basename(dataset.dataset_path.rstrip('/'))
+            final_destiny = os.path.join(destiny_machine.local_dataset_path, dataset_name)
+            
+            # Transferir a pasta temporária para a máquina de destino com o nome desejado
+            with SCPClient(self.ssh.get_transport(), progress4=self.progress4) as scp:
+                scp.put(temp_dir, final_destiny, recursive=True)
 
-                if os.path.isfile(local_path):
-                    # Se for um arquivo, verifique se já existe no remoto
-                    if self.file_exists(remote_path):
-                        if verbose:
-                            print(f"Already exists: {remote_path}")
-                    else:
-                        self._sftp.put(local_path, remote_path)
-                        if verbose:
-                            print(f"{local_path} => {remote_path}")
-                elif os.path.isdir(local_path):
-                    # Se for um diretório, chame recursivamente
-                    if verbose:
-                        print(f"Directory: {local_path} => {remote_path}")
-                    # Não altera o diretório remoto antes de chamar recursivamente
-                    self.upload_folder(local_path, remote_path, verbose)
         except Exception as e:
-            raise RuntimeError(f"Failed to upload folder: {e}")
+            raise e
         
-    def file_exists(self, remote_path):
-        try:
-            self._sftp.stat(remote_path)
-            return True
-        except IOError:
-            return False
-        
-    def tranferFromHostToRemote(self, isFolder=False, verbose=False):
-        if isFolder:
-            try:
-                self.upload_folder(self.host_file, self.remote_file, verbose=verbose)
-            except Exception as e:
-                raise RuntimeError(f"Failed to transfer folder from host to remote: {e}")
-        else:
-            try:
-                self._sftp.put(self.host_file, self.remote_file)
-            except Exception as e:
-                raise RuntimeError(f"Failed to transfer file from host to remote: {e}")
-
-
-    def transferFromRemoteToHost(self):
-        try:
-            self._sftp.get(self.remote_file, self.host_file)
-        except Exception as e:
-            raise RuntimeError(f"Failed to transfer file from remote to host: {e}")
-    
-    def __del__(self):
-        try:
-            self._sftp.close()
-            self._ssh.close()
-        except Exception as e:
-            print(f"Failed to close SFTP or SSH connection: {e}")
+        finally:
+            if self.ssh:
+                self.ssh.close()

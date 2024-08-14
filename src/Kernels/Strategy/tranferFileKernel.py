@@ -7,11 +7,7 @@ from abc import ABC, abstractmethod
 class TransferFileKernel(ABC):
 
     @abstractmethod
-    def tranferFromHostToRemote(self):
-        pass
-    
-    @abstractmethod
-    def transferFromRemoteToHost(self):
+    def transferFile(self):
         pass
 
     @abstractmethod

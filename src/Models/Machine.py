@@ -6,19 +6,25 @@ from Models import Dataset
 
 
 class Machine():
-    def __init__(self, username: str, password: str, host: str, ssh_port: int, dataset: Dataset, partition:str="/", local_dataset_path="/" ,online:bool=False,
-                  transferModule:TransferFileModule= None, machineKernel:MachineKernel= None):
-        self.username=username
-        self.password=password
-        self.host=host
-        self.ssh_port=ssh_port
+    def __init__(self, name:str, dataset: Dataset, partition:str="/", local_dataset_path="/" ,online:bool=False, machineKernel:MachineKernel= None):
         self.online=online
         self.dataset=dataset
         self.partition=partition
         self.local_dataset_path=local_dataset_path
         self.MachineKernel=machineKernel
-        self.TransferModule=transferModule
-
+        self.name=name
+    
+    def get_username(self):
+        return self.MachineKernel.username
+    
+    def get_password(self):
+        return self.MachineKernel.password
+    
+    def get_ssh(self):
+        return self.MachineKernel.ssh
+    
+    def get_host(self):
+        return self.MachineKernel.host
 
     # def _create_transferFileModule(self):
     #     trasferFileKernel = SSHTranferFileKernel(remote_machine=self.dataset.source_ip,

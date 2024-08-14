@@ -27,7 +27,7 @@ class UbuntoMachineKernel(MachineKernel):
                 details=f"Failed to connect to {host}:{ssh_port}",
                 error=e
             ) from e
-    
+
     def get_partition_info(self, partition="/"):
         def _build_partition_dict(stdout, stderr):
             out = stdout.read().decode()

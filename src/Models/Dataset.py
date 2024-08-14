@@ -1,11 +1,21 @@
 import sys
+from Kernels.Strategy.machineKernel import MachineKernel
 sys.path.insert(0, 'src')
 
 class Dataset():
-    def __init__(self, source_ip, source_username, source_password, source_ssh_port, source_path, machineKernel):
-        self.source_ip=source_ip
-        self.source_username=source_username
-        self.source_password=source_password
-        self.source_ssh=source_ssh_port
-        self.source_path=source_path
-        self.source_machine_kernel=machineKernel
+    def __init__(self, name: str, machine_kernel: MachineKernel, local_dataset_path:str):
+        self.name = name
+        self.machine_kernel = machine_kernel
+        self.dataset_path = local_dataset_path
+
+    def get_username(self):
+        return self.machine_kernel.username
+    
+    def get_password(self):
+        return self.machine_kernel.password
+    
+    def get_ssh(self):
+        return self.machine_kernel.ssh
+    
+    def get_host(self):
+        return self.machine_kernel.host

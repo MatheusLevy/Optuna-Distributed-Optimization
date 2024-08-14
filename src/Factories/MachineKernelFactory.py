@@ -5,11 +5,11 @@ from Kernels.Strategy.machineKernel import MachineKernel
 from Kernels.Concrete.ubuntuMachineKernel import UbuntoMachineKernel
 
 class MachineKernelFactory():
-    def getMachineKernel(self, type: str, machine: Machine) -> MachineKernel:
+    def getMachineKernel(self, type: str, host, password, username, ssh_port) -> MachineKernel:
         if type == "Ubuntu":
-            return UbuntoMachineKernel(host=machine.host,
-                                       password=machine.password,
-                                       username=machine.password,
-                                       ssh_port=machine.ssh_port)
+            return UbuntoMachineKernel(host=host,
+                                       password=password,
+                                       username=username,
+                                       ssh_port=ssh_port)
         else:
             raise ValueError(f"Machine type unknow {type}")
