@@ -1,27 +1,24 @@
 from Kernels.Strategy.packageManager import PackageManager
 from Kernels.Exceptions.packageManagerException import PackageManagerException
+from Models.Machine import Machine
+
 import paramiko
 import time
-import re
 
 class CondaKernel(PackageManager):
-    def __init__(self,
-                 username,
-                 password,
-                 host="localhost",
-                 ssh_port=22):
-        self.username=username,
-        self.password=password,
+    def __init__(self, dst_machine: Machine):
+        self.username=dst_machine.MachineKernel.username,
+        self.password=dst_machine.MachineKernel.password,
         self._ssh = paramiko.SSHClient()
         self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.channel = None
         self.env_name= None
         try:
             self._ssh.connect(
-                hostname=host,
-                port=ssh_port,
-                username=username,
-                password=password
+                hostname=dst_machine.MachineKernel.host,
+                port=dst_machine.MachineKernel.ssh_port,
+                username=dst_machine.MachineKernel.username,
+                password=dst_machine.MachineKernel.password
             )
         except Exception as e:
             raise PackageManagerException(
@@ -79,19 +76,11 @@ class CondaKernel(PackageManager):
         output = self.channel.recv(2048)   
         return output
     
-    def patterns_in_string(self, string, patterns):
-        for pattern in patterns:
-            if re.match(pattern, string):
-                return True
-        return False
+
+    def string_in_string(self, string1, string2):
+        return string2 in string1 and 'echo' not in string1
     
-    def strings_in_string(self, string, strings):
-            for text in  strings:
-                if text in string:
-                    return True
-            return False
-            
-    def wait_until_command_finished(self, regex_patterns=[''], text_callback=['']):
+    def wait_until_command_finished(self,  text_callback=''):
         while True:
             try:
                 output = self.channel.recv(1024).decode()
@@ -101,7 +90,7 @@ class CondaKernel(PackageManager):
                     details="Falied to fetch the output of the command",
                     error=e
                 )
-            if self.patterns_in_string(output, regex_patterns) or self.strings_in_string(output, text_callback):
+            if self.string_in_string(output, text_callback):
                 time.sleep(0.5)
                 break      
                
@@ -118,7 +107,7 @@ class CondaKernel(PackageManager):
             )
         try:
             self.wait_until_command_finished(
-                text_callback=["(FINISHED CODE)\r\n"]
+                text_callback="(FINISHED CODE)"
             )
         except PackageManagerException as e:
             raise e
@@ -136,7 +125,7 @@ class CondaKernel(PackageManager):
             ) from e
         try:
             self.wait_until_command_finished(
-                text_callback=["FINISHED CODE"]
+                text_callback="(FINISHED CODE)"
             )
         except PackageManagerException as e:
             raise e
@@ -154,7 +143,7 @@ class CondaKernel(PackageManager):
             )
         try:
             self.wait_until_command_finished(
-                text_callback=["FINISHED CODE"]
+                 text_callback="(FINISHED CODE)"
             )
         except PackageManagerException as e:
             raise e

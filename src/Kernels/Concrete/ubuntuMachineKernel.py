@@ -11,6 +11,7 @@ class UbuntoMachineKernel(MachineKernel):
                  ):
         self.username= username
         self.password = password
+        self.ssh_port = ssh_port
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.host = host

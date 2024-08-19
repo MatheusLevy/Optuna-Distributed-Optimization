@@ -19,8 +19,39 @@ class SSHTransferFileKernel:
     def make_folder_if_not_exists(folder):
         if not os.path.exists(folder):
             os.makedirs(folder)
+    
+    def transferFile(self, dataset:Dataset= None, destiny_machine: Machine=None, file_path: str=None):
+        try:
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.ssh.connect(dataset.get_host(), username=dataset.get_username(), password=dataset.get_password())
 
-    def transferFile(self, dataset: Dataset = None, destiny_machine: Machine = None):
+            print("Movendo arquivo para o servidor\n")
+            uuid_dir = str(uuid.uuid4())  # Gerar UUID
+            temp_dir = f"/backup/temp/{uuid_dir}"
+            with SCPClient(self.ssh.get_transport(), progress4=self.progress4) as scp:
+                scp.get(file_path, temp_dir)
+            self.ssh.close()
+
+            self.ssh = paramiko.SSHClient()
+            self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            self.ssh.connect(destiny_machine.get_host(), username=destiny_machine.get_username(), password=destiny_machine.get_password())
+
+            print("Movendo do arquivo para a máquina de destino")
+            dataset_name = os.path.basename(file_path.rstrip('/'))
+            final_destiny = os.path.join(destiny_machine.local_dataset_path,dataset_name)
+            # Transferir a pasta temporária para a máquina de destino com o nome desejado
+            with SCPClient(self.ssh.get_transport(), progress4=self.progress4) as scp:
+                scp.put(temp_dir, final_destiny)
+
+        except Exception as e:
+            raise e
+        
+        finally:
+            if self.ssh:
+                self.ssh.close()
+        return final_destiny
+    def transferDatast(self, dataset: Dataset = None, destiny_machine: Machine = None):
         try:
             # Conectar à máquina de origem
             self.ssh = paramiko.SSHClient()

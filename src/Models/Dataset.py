@@ -3,10 +3,11 @@ from Kernels.Strategy.machineKernel import MachineKernel
 sys.path.insert(0, 'src')
 
 class Dataset():
-    def __init__(self, name: str, machine_kernel: MachineKernel, local_dataset_path:str):
+    def __init__(self, name: str, machine_kernel: MachineKernel, local_dataset_path:str, envs: dict= None):
         self.name = name
         self.machine_kernel = machine_kernel
         self.dataset_path = local_dataset_path
+        self.enviroments= envs
 
     def get_username(self):
         return self.machine_kernel.username

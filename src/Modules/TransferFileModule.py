@@ -13,16 +13,19 @@ class TransferFileModule:
     def bytes_to_gb(self, bytes_value):
         return bytes_value / (1024 ** 3)
     
-    def transfer(self):
-        # Importing here to avoid circular import issues
-        from Kernels.Strategy.tranferFileKernel import TransferFileKernel
-        from Models.Dataset import Dataset
-        from Models.Machine import Machine
-
+    def transferDataset(self):
         # Verifying if there's enough space on the destination machine
         dataset_size = self.dataset_source.machine_kernel.get_folder_size(self.dataset_source.dataset_path)
         space_on_remote = self.dstMachine.MachineKernel.get_partition_info()['free_space']
         if not self.is_space_on_remote(dataset_size, space_on_remote):
             return -1
-        self.transferFileKernel.transferFile(self.dataset_source, self.dstMachine)
+        self.transferFileKernel.transferDataset(self.dataset_source, self.dstMachine)
         return "ok"
+    
+    def transferFile(self, file_path):
+        file_size = self.dataset_source.machine_kernel.get_folder_size(file_path)
+        space_on_remote = self.dstMachine.MachineKernel.get_partition_info()['free_space']
+        if not self.is_space_on_remote(file_size, space_on_remote):
+            return -1
+        return self.transferFileKernel.transferFile(self.dataset_source, self.dstMachine, file_path=file_path)
+
