@@ -17,8 +17,4 @@ class TestTranferFileModule():
         module = MachinaryModule(dataset=self.dataset, machine_list=self.machine_list)
         onlines = module.get_online_machines()
         print(onlines)
-
-    # def test_in_use_machines(self):
-    #     module = MachinaryModule(self.machine_list)
-    #     onlines = module.get_online_machines()
-
+        

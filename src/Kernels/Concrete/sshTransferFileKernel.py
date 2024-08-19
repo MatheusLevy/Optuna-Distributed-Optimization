@@ -45,11 +45,10 @@ class SSHTransferFileKernel:
             
             print("Movendo do servidor para a máquina de destino")
             dataset_name = os.path.basename(dataset.dataset_path.rstrip('/'))
-            final_destiny = os.path.join(destiny_machine.local_dataset_path, dataset_name)
-            
+            final_destiny = os.path.join(destiny_machine.local_dataset_path)
             # Transferir a pasta temporária para a máquina de destino com o nome desejado
             with SCPClient(self.ssh.get_transport(), progress4=self.progress4) as scp:
-                scp.put(temp_dir, final_destiny, recursive=True)
+                scp.put(os.path.join(temp_dir, dataset_name), final_destiny, recursive=True)
 
         except Exception as e:
             raise e
