@@ -20,7 +20,7 @@ class TestTranferFileModule():
         self.dataset = Dataset("lucas", self.datasetMachineKernel, local_dataset_path="/home/vip-lab/dataset_optuna_test")
         self.dstMachine = Machine(name="mackele", dataset=self.dataset, partition="/", local_dataset_path="/home/viplab", machineKernel=self.dstMachineKernel, online=True)
         self.transfeFileKernel = SSHTransferFileKernel()
-        self.transferModule = TransferFileModule(dataset=self.dataset, destinyMachineKernel=self.dstMachine, transferFileKernel=self.transfeFileKernel)
+        self.transferModule = TransferFileModule(dataset=self.dataset, destinyMachine=self.dstMachine, transferFileKernel=self.transfeFileKernel)
 
     def test_TransferFile(self):
-        self.transfeFileKernel.transferFile(dataset=self.dataset, destiny_machine=self.dstMachine)
+        self.transferModule.transfer()
