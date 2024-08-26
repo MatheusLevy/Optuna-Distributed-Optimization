@@ -1,0 +1,48 @@
+Dataset:
+  name: test_data
+  host: '192.168.200.47'
+  username: viplab
+  password: viplab321
+  ssh_port: 22
+  dataset_path: /home/viplab/test_data
+  envs:
+    pytorch: /home/viplab/conda_env_pytorch.yaml
+    tensorflow: /home/viplab/conda_env_tensorflow.yaml
+
+Database:
+  owner: levy  
+  name: levy-optuna-otimizacao
+  host: localhost
+  username: viplab
+  password: viplab321
+  ssh_port: 22
+  default_databse: postgres
+
+Machines:
+  machine1:
+    name: lucas-vip
+    host: '192.168.200.192'
+    username: viplab
+    password: viplab321
+    partition: /backup
+    dataset_local_path: /backup/otmizacoes
+    package_manager: conda
+    env: pytorch
+    execute:
+      file1: /test_data/code/pytorch_gpu1.py
+      file2: /test_data/code/pytorch_gpu2.py
+  
+  machine2:
+    name: mackele-vip
+    host: '192.168.200.175'
+    username: viplab
+    password: viplab321
+    partition: /
+    dataset_loca_path: /home/viplabe/otimizacoes
+    package_manager: conda
+    env: tensorflow
+    execute:
+      file1: /test_data/code/tensorflow_code.py
+
+
+  

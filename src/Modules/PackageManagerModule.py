@@ -18,5 +18,5 @@ class PackageManagerModule():
         path_to_env_file = self.transferModule.transferFile(file_path=self.dataset.enviroments[self.env])
         # Instalar na maquina de destino
         self.packageManagerKernel.init_shell()
-        print(f"Instaling Env on {self.dstMachine.name}")
+        print(f"Installing Env on {self.dstMachine.name}")
         self.packageManagerKernel.install_from_file(file_path=path_to_env_file)
