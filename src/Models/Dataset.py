@@ -8,7 +8,8 @@ class Dataset():
         self.machine_kernel = machine_kernel
         self.dataset_path = local_dataset_path
         self.enviroments= envs
-
+        self.size = self._get_size()
+        
     def get_username(self):
         return self.machine_kernel.username
     
@@ -20,3 +21,6 @@ class Dataset():
     
     def get_host(self):
         return self.machine_kernel.host
+    
+    def _get_size(self):
+        return self.machine_kernel.get_folder_size(self.dataset_path)

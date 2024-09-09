@@ -13,7 +13,7 @@ class PackageManagerModule():
         self.packageManagerKernel = packageManagerKernel
         self.env = env_name
 
-    def install(self):
+    def installEnv(self):
         # puxar o env do dataset para a maquina de dst
         path_to_env_file = self.transferModule.transferFile(file_path=self.dataset.enviroments[self.env])
         # Instalar na maquina de destino

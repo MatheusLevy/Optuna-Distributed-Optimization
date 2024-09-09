@@ -8,3 +8,4 @@ class Dataset():
         self.username= username
         self.password = password
         self.databaseKernel = databaseKernel
+        

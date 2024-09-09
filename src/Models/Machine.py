@@ -14,7 +14,24 @@ class Machine():
         self.MachineKernel=machineKernel
         self.PakageManagerKernel = packageManagerKernel
         self.name=name
+
+
+    def start(self):
+        gpus_using_info = self.MachineKernel.gpu_is_used()
+        for gpu in gpus_using_info:
+            if gpu['in_use'] == False:
+                self.online = True
+                break
+
+    def is_space(self, file_bytes, partition_free_bytes):
+        return int(partition_free_bytes) > int(file_bytes)
     
+    def has_space(self):
+        dataset_size = self.dataset.size
+        machine_space = self.MachineKernel.get_partition_info()['free_space']
+        return self.is_space(dataset_size, machine_space)
+
+
     def get_username(self):
         return self.MachineKernel.username
     
@@ -26,3 +43,5 @@ class Machine():
     
     def get_host(self):
         return self.MachineKernel.host
+    
+
